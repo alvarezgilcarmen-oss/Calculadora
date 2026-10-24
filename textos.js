@@ -167,30 +167,6 @@
     <p>Si en el futuro presenta síntomas como sangrado vaginal fuera de la menstruación, después de las relaciones sexuales o tras la menopausia, o flujo vaginal persistente no habitual, consulte con su profesional sanitario de referencia.</p>
   </div>`;
 
-  T.finCribadoSinCuello = `
-  <div class="info-paciente">
-    <h3>Información para la paciente</h3>
-    <p>Al no tener cuello del útero, no necesita realizar pruebas de cribado de cáncer de cuello de útero.</p>
-    <p>Si en el futuro presenta síntomas como sangrado vaginal o flujo vaginal persistente no habitual, consulte con su profesional sanitario de referencia.</p>
-  </div>`;
-
-  T.citologiaConsulta = `
-  <div class="info-paciente">
-    <h3>Información para la paciente</h3>
-    <p>Por sus antecedentes, sus controles se realizarán fuera del programa de cribado poblacional, en la consulta de su centro de salud.</p>
-    <p>Las mujeres que han tenido una lesión de alto grado en el cuello del útero necesitan controles durante más tiempo que el resto de las mujeres: al menos 25 años, aunque superen los 65 años de edad.</p>
-    <p>Su profesional sanitario le indicará cuándo debe realizar cada control. Es importante que acuda a todos ellos.</p>
-    <p>Si presenta síntomas como sangrado vaginal fuera de la menstruación, después de las relaciones sexuales o flujo vaginal persistente no habitual, consulte con su profesional sanitario de referencia.</p>
-  </div>`;
-
-  T.ginecologia = `
-  <div class="info-paciente">
-    <h3>Información para la paciente</h3>
-    <p>Por su situación clínica, sus controles de prevención del cáncer de cuello de útero se realizarán en la consulta de ginecología, fuera del programa de cribado poblacional.</p>
-    <p>Así, las pruebas y su frecuencia se adaptan a su caso.</p>
-    <p>Es importante que acuda a las revisiones que le indiquen.</p>
-  </div>`;
-
   T.pruebaSalida = `
   <div class="info-paciente">
     <h3>Información para la paciente</h3>
@@ -199,13 +175,6 @@
     <p>Si el resultado es negativo, no necesitará más pruebas de cribado. Si es positivo, se le indicará una valoración más detallada.</p>
     <p>Es importante que acuda a esta prueba.</p>
     ${SINTOMAS}
-  </div>`;
-
-  T.gestacion23 = `
-  <div class="info-paciente">
-    <h3>Información para la paciente</h3>
-    <p>Durante el segundo y el tercer trimestre del embarazo no se realizan las pruebas del programa de cribado.</p>
-    <p>La prueba se realizará después del parto. Su profesional sanitario le indicará cuándo.</p>
   </div>`;
 
   T.vueltaCribado = `

@@ -48,14 +48,6 @@
     // Edad y exclusiones
     "EDAD-MENOR25": { d: "Menor de 25 años: fuera de la población diana", f: [F.P3], aepcc: false },
     "EDAD-MAYOR75": { d: "Mayor de 75 años sin situación especial: no procede cribado", f: [F.A25_19], aepcc: true },
-    "EXC-CANCER": { d: "Cáncer de cuello uterino: exclusión definitiva", f: [F.PXI], aepcc: false },
-    "EXC-TERMINAL": { d: "Enfermedad terminal: exclusión definitiva", f: [F.PXI], aepcc: false },
-    "EXC-GINE": { d: "Seguimiento activo en ginecología por CIN2+ o colposcopia inadecuada permanente", f: [F.PXI, F.A25_7], aepcc: false },
-    "EXC-INMUNO": { d: "Inmunodepresión: fuera del cribado poblacional, seguimiento en ginecología", f: [F.PXI, F.A25_1011, F.DEC], aepcc: false },
-    "EXC-SINCUELLO": { d: "Ausencia de cuello uterino sin antecedente de HSIL/CIN2+ o AIS: fin del cribado", f: [F.PXI, F.A25_8], aepcc: false },
-    "EXC-HT-CIN2": { d: "Histerectomía total por HSIL/CIN2+ o AIS: citología de consulta al menos 25 años", f: [F.PXI, F.A25_8, F.DEC], aepcc: true },
-    "EXC-ANTEC-CIN2": { d: "Antecedente de HSIL/CIN2+ o AIS dada de alta: citología de consulta al menos 25 años", f: [F.PXI, F.A25_7, F.DEC], aepcc: true },
-    "EXC-GEST23": { d: "Gestación en 2.º o 3.er trimestre: exclusión temporal", f: [F.PXI], aepcc: false },
 
     // Cribado primario 25–34 (citología)
     "C25-NORMAL": { d: "Citología negativa: cribado rutinario", f: [F.P12, F.P3], aepcc: false },
@@ -134,26 +126,6 @@
 
   const CAMPOS = {
     edad: { etiqueta: "Edad en la fecha de la toma (años)", tipo: "numero" },
-    situacion: {
-      etiqueta: "Situaciones especiales",
-      ayuda: "Si concurren varias, elija la primera de la lista que se cumpla.",
-      opciones: [
-        ["ninguna", "Ninguna"],
-        ["cancer", "Diagnóstico de cáncer de cuello uterino"],
-        ["terminal", "Enfermedad terminal (pronóstico de vida inferior a seis meses)"],
-        ["gine_activo", "En seguimiento en ginecología por CIN2+ o con colposcopia inadecuada permanente"],
-        ["inmuno", "Inmunodepresión (VIH, trasplante u otra enfermedad con tratamiento inmunosupresor)"],
-        ["sin_cuello", "Ausencia de cuello uterino (histerectomía total, ausencia congénita u otra causa)"],
-        ["antec_cin2", "Antecedente de HSIL/CIN2+ o AIS tratado o resuelto, ya dada de alta en ginecología"],
-        ["gest_23", "Gestación en el segundo o tercer trimestre"],
-        ["gest_1", "Gestación en el primer trimestre"],
-        ["subtotal", "Histerectomía subtotal (conserva el cuello uterino)"]
-      ]
-    },
-    histerectomia_cin2: {
-      etiqueta: "¿La histerectomía fue por HSIL/CIN2+ o AIS, o se encontró esa lesión en la pieza?",
-      opciones: [["si", "Sí"], ["no", "No (o no hubo histerectomía)"]]
-    },
     contexto: { etiqueta: "Situación clínica" }, // opciones según la edad
     cit_cribado: { etiqueta: "Resultado de la citología de cribado", opciones: CIT },
     previo_nv_cit: { etiqueta: "¿La citología previa inmediata fue también no valorable?", opciones: SI_NO },
@@ -192,8 +164,6 @@
       opciones: [["negativo", "Negativo"], ["positivo", "Positivo (cualquier genotipo)"], ["no_valorable", "No valorable / no concluyente"]]
     }
   };
-
-  const EXCLUSIONES = ["cancer", "terminal", "gine_activo", "inmuno", "sin_cuello", "antec_cin2", "gest_23"];
 
   // ------------------------------------------------------------------
   // UTILIDADES
@@ -243,10 +213,6 @@
     const v = ["edad"];
     if (!edadValida(d) || d.edad < 25) return v;
 
-    v.push("situacion");
-    if (!d.situacion) return v;
-    if (d.situacion === "sin_cuello") { v.push("histerectomia_cin2"); return v; }
-    if (EXCLUSIONES.includes(d.situacion)) return v;
     if (d.edad > 75) return v;
 
     v.push("contexto");
@@ -329,7 +295,6 @@
 
   const CONSULTA = "Por el circuito de citología de consulta (Atención Primaria, fuera del cribado poblacional).";
   const COLPO = "Colposcopia (valoración ginecológica)";
-  const NOTA_GESTACION = "Gestación: el manejo de un resultado anormal en la gestación es específico (AEPCC 2022, apartado 6.3.4); valorar en ginecología.";
 
   function edadSegunTramo(edad) { return edad < 35 ? "25–34 años: cribado con citología" : "35–65 años: cribado con prueba de VPH"; }
 
@@ -398,52 +363,10 @@
       return resultado("EDAD-MENOR25", "Fuera de la población diana: el cribado comienza a los 25 años", "fuera", ruta);
     }
 
-    // Situaciones especiales (anexo XI y AEPCC 2025)
-    const s = d.situacion;
-    if (s === "cancer") {
-      ruta.push("Diagnóstico de cáncer de cuello uterino");
-      return resultado("EXC-CANCER", "Exclusión definitiva del cribado: seguimiento oncológico", "fuera", ruta);
-    }
-    if (s === "terminal") {
-      ruta.push("Enfermedad terminal");
-      return resultado("EXC-TERMINAL", "Exclusión definitiva del cribado: no procede realizar pruebas de cribado", "fuera", ruta);
-    }
-    if (s === "gine_activo") {
-      ruta.push("En seguimiento en ginecología por CIN2+ o colposcopia inadecuada permanente");
-      return resultado("EXC-GINE", "Exclusión del cribado poblacional: seguimiento en consulta de ginecología", "fuera", ruta,
-        { info: "ginecologia", notas: ["Tras HSIL/CIN2+, el cribado debe mantenerse al menos 25 años (AEPCC 2025)."] });
-    }
-    if (s === "inmuno") {
-      ruta.push("Inmunodepresión");
-      return resultado("EXC-INMUNO", "Fuera del cribado poblacional: seguimiento en consulta de ginecología", "fuera", ruta,
-        { info: "ginecologia", notas: ["Según la AEPCC 2025: prueba de VPH cada 3 años desde los 25 años y de por vida."] });
-    }
-    if (s === "sin_cuello") {
-      ruta.push("Ausencia de cuello uterino");
-      if (d.histerectomia_cin2 === "si") {
-        ruta.push("Histerectomía por HSIL/CIN2+ o AIS");
-        return resultado("EXC-HT-CIN2", "Exclusión del cribado poblacional: seguimiento por citología de consulta", "fuera", ruta,
-          { detalle: "Circuito de citología de consulta (Atención Primaria) durante al menos 25 años, aunque supere los 65 años.", info: "citologiaConsulta" });
-      }
-      ruta.push("Sin antecedente de HSIL/CIN2+ o AIS");
-      return resultado("EXC-SINCUELLO", "Exclusión definitiva: fin del cribado", "cribado", ruta, { info: "finCribadoSinCuello" });
-    }
-    if (s === "antec_cin2") {
-      ruta.push("Antecedente de HSIL/CIN2+ o AIS, dada de alta en ginecología");
-      return resultado("EXC-ANTEC-CIN2", "Fuera del cribado poblacional: seguimiento por citología de consulta", "fuera", ruta,
-        { detalle: "Circuito de citología de consulta (Atención Primaria) durante al menos 25 años, aunque supere los 65 años.", info: "citologiaConsulta" });
-    }
-    if (s === "gest_23") {
-      ruta.push("Gestación en el segundo o tercer trimestre");
-      return resultado("EXC-GEST23", "Exclusión temporal: posponer el cribado hasta después del parto", "fuera", ruta,
-        { detalle: "Si ya hay un resultado anormal, valoración en ginecología.", info: "gestacion23" });
-    }
     if (edad > 75) {
       ruta.push("Edad: " + edad + " años");
       return resultado("EDAD-MAYOR75", "No procede cribado (mayor de 75 años)", "fuera", ruta);
     }
-    if (s === "subtotal") ruta.push("Histerectomía subtotal: se aplica el algoritmo general");
-    if (s === "gest_1") ruta.push("Gestación en el primer trimestre: se aplica el algoritmo general");
 
     let r;
     const ctx = d.contexto;
@@ -455,7 +378,6 @@
       r = siguienteRutina(d, ruta, "gine", { rutina: "GINE-RUTINA", salida: "GINE-MAYOR65" }, "vueltaCribado");
     } else r = salida(d, ruta);
 
-    if (s === "gest_1" && r.completo && ["colposcopia", "control"].includes(r.tipo)) r.notas.push(NOTA_GESTACION);
     return r;
   }
 

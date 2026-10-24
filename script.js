@@ -18,7 +18,7 @@
   let datos = {};
 
   // Campos del bloque «Paciente»; el resto va al bloque «Prueba».
-  const BLOQUE_PACIENTE = ["edad", "situacion", "histerectomia_cin2"];
+  const BLOQUE_PACIENTE = ["edad"];
   // Con hasta tres opciones se muestran botones en lugar de desplegable.
   const MAX_BOTONES = 3;
 
@@ -26,8 +26,6 @@
   const SI = (si, no) => (v) => (v === "si" ? si : no);
   const CORTO = {
     edad: (v) => v + " años",
-    situacion: (v, t) => (v === "ninguna" ? null : t),
-    histerectomia_cin2: SI("Histerectomía por CIN2+ o AIS", "Sin antecedente de CIN2+ o AIS"),
     contexto: (v) => ({ cribado: "Prueba de cribado", seguimiento: "Co-test de seguimiento", vuelta_gine: "Vuelta tras ginecología", salida: "Prueba de salida o captación" }[v]),
     cit_cribado: (v, t) => "Citología: " + t,
     previo_nv_cit: SI("Citología previa no valorable", "Citología previa valorable"),
@@ -258,12 +256,6 @@
       html += '<ul class="notas">' + r.notas.map((n) => "<li>" + esc(n) + "</li>").join("") + "</ul>";
     }
 
-    html +=
-      '<details class="ruta" open><summary>Cómo se llega a esta recomendación</summary>' +
-      '<ol class="pasos">' + r.ruta.map((p) => "<li>" + esc(p) + "</li>").join("") + "</ol>" +
-      '<p class="fuentes"><strong>Fuentes:</strong> ' + r.fuentes.map(esc).join(" · ") +
-      ' <span class="regla">Regla ' + esc(r.id) + "</span></p></details>";
-
     if (r.info && T[r.info]) {
       html +=
         '<details class="paciente"><summary>Información para la paciente</summary>' +
@@ -354,6 +346,10 @@
     "Versión " + R.VERSION + " · " + R.FECHA_VERSION.split("-").reverse().join("/");
   document.getElementById("base").textContent = "Basada en: " + R.BASE + ".";
   if (BORRADOR) document.getElementById("aviso-borrador").classList.remove("hidden");
+
+  // En pantallas pequeñas, los criterios de exclusión empiezan plegados.
+  const exclusiones = document.querySelector(".exclusiones");
+  if (exclusiones && window.matchMedia && window.matchMedia("(max-width: 640px)").matches) exclusiones.open = false;
 
   actualizarFormulario();
 })();

@@ -647,3 +647,49 @@ input[type="number"]:focus {
     text-align: left;
   }
 }
+
+/* Criterios de exclusión en la portada */
+.exclusiones {
+  margin: -12px 0 26px;
+  padding: 14px 18px 6px;
+  border-radius: 16px;
+  background: #fbf8f3;
+  border: 1px solid #ece3d3;
+  color: #5c4a2e;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.exclusiones-titulo {
+  margin: 0 0 8px;
+  font-weight: 800;
+  color: #4a3a20;
+  cursor: pointer;
+}
+
+.exclusiones:not([open]) {
+  padding-bottom: 14px;
+}
+
+.exclusiones:not([open]) .exclusiones-titulo {
+  margin-bottom: 0;
+}
+
+.exclusiones ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.exclusiones li {
+  margin-bottom: 6px;
+}
+
+.exclusiones strong {
+  color: #3d2f17;
+}
+
+@media print {
+  body.imprimir-paciente .exclusiones {
+    display: none !important;
+  }
+}
