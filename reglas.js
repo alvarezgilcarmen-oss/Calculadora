@@ -12,7 +12,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.2.1";
+  const VERSION = "2.3.0";
   const FECHA_VERSION = "2026-10-25";
   const BASE = "PDPCCU de Andalucía (junio de 2024) y anexo «VPH + con genotipado indeterminado» v1.3; AEPCC 2022 y AEPCC 2025 donde el PDPCCU no llega";
 
@@ -105,10 +105,6 @@
     "SEG-RESUELTO-SALIDA": { d: "Seguimiento resuelto entre 61 y 64 años: la siguiente prueba (66–69 años) es la de salida", f: [F.P13, F.A25_24], aepcc: true },
     "SEG-RESUELTO-65": { d: "Seguimiento resuelto a los 65 años (equivale a cribado inadecuado): VPH a los 70 años", f: [F.A25_19, F.DEC], aepcc: true },
     "SEG-RESUELTO-66": { d: "Seguimiento resuelto entre 66 y 75 años: fin del cribado", f: [F.A25_19, F.DEC], aepcc: true },
-
-    // Vuelta al cribado tras valoración ginecológica
-    "GINE-RUTINA": { d: "Vuelta al cribado según edad", f: [F.P13, F.P3], aepcc: false },
-    "GINE-MAYOR65": { d: "Siguiente valoración después de los 65 años: exclusión y seguimiento fuera del cribado", f: [F.P13, F.A25_19, F.A25_24, F.DEC], aepcc: false },
 
     // Prueba de salida o captación activa 66–75
     "SAL-NEG": { d: "Prueba de salida negativa: fin del cribado", f: [F.A25_19, F.A25_24], aepcc: true },
@@ -210,14 +206,12 @@
       if (d.edad >= 66) {
         return [
           ["salida", "Prueba de salida o captación activa (66–75 años)"],
-          ["seguimiento", "Resultado de un co-test de seguimiento"],
-          ["vuelta_gine", "Vuelta al cribado indicada por ginecología (según edad)"]
+          ["seguimiento", "Resultado de un co-test de seguimiento"]
         ];
       }
       return [
         ["cribado", "Resultado de la prueba de cribado"],
-        ["seguimiento", "Resultado de un co-test de seguimiento"],
-        ["vuelta_gine", "Vuelta al cribado indicada por ginecología (según edad)"]
+        ["seguimiento", "Resultado de un co-test de seguimiento"]
       ];
     }
     return CAMPOS[campo].opciones;
@@ -339,8 +333,8 @@
   function edadSegunTramo(edad) { return edad < 35 ? "25–34 años: cribado con citología" : "35–65 años: cribado con prueba de VPH"; }
 
   // Siguiente prueba tras un resultado negativo que devuelve al cribado.
-  // origen: "primario" (tras la prueba de cribado), "resuelto" (tras un
-  // seguimiento con co-test) o "gine" (vuelta indicada por ginecología).
+  // origen: "primario" (tras la prueba de cribado) o "resuelto" (tras un
+  // seguimiento con co-test).
   function siguienteRutina(d, ruta, origen, ids, info) {
     const edad = d.edad;
     const intervalo = edad < 35 ? 3 : 5;
@@ -354,12 +348,6 @@
     if (origen === "resuelto" && edad >= 66) {
       ruta.push("Seguimiento resuelto entre los 66 y los 75 años");
       return resultado("SEG-RESUELTO-66", "Fin del cribado", "cribado", ruta, { info: "finCribado" });
-    }
-    if (origen === "gine" && proxima > 65) {
-      ruta.push("Siguiente valoración después de los 65 años (a los " + proxima + ")");
-      const cuando = proxima > 75 ? "ahora" : "a los " + proxima + " años";
-      return resultado("GINE-MAYOR65", "Exclusión del cribado poblacional: prueba de VPH de salida " + cuando, "fuera", ruta,
-        { detalle: CONSULTA + " Si es negativa, fin del cribado; si es positiva, colposcopia.", info: "pruebaSalida" });
     }
     if (proxima > 65) { // 61–64 años con intervalo de 5 años
       ruta.push("La siguiente prueba sería a los " + proxima + " años: prueba de salida del cribado");
@@ -413,10 +401,7 @@
     if (ctx === "cribado" && edad <= 34) r = cribado25(d, ruta);
     else if (ctx === "cribado") r = cribado35(d, ruta);
     else if (ctx === "seguimiento") r = seguimiento(d, ruta);
-    else if (ctx === "vuelta_gine") {
-      ruta.push("Vuelta al cribado indicada por ginecología, según edad");
-      r = siguienteRutina(d, ruta, "gine", { rutina: "GINE-RUTINA", salida: "GINE-MAYOR65" }, "vueltaCribado");
-    } else r = salida(d, ruta);
+    else r = salida(d, ruta);
 
     return r;
   }

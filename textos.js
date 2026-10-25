@@ -177,14 +177,6 @@
     ${SINTOMAS}
   </div>`;
 
-  T.vueltaCribado = `
-  <div class="info-paciente">
-    <h3>Información para la paciente</h3>
-    <p>Tras la valoración en ginecología, puede volver al programa habitual de cribado poblacional.</p>
-    <p>La siguiente prueba se realizará según el intervalo establecido para su edad.</p>
-    <p>Es importante que participe cuando reciba la próxima invitación.</p>
-    ${SINTOMAS}
-  </div>`;
 
   // NUEVO (pendiente de revisión)
   T.controlTrasColposcopia = `

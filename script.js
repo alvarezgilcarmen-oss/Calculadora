@@ -26,7 +26,7 @@
   const SI = (si, no) => (v) => (v === "si" ? si : no);
   const CORTO = {
     edad: (v) => v + " años",
-    contexto: (v) => ({ cribado: "Prueba de cribado", seguimiento: "Co-test de seguimiento", vuelta_gine: "Vuelta tras ginecología", salida: "Prueba de salida o captación" }[v]),
+    contexto: (v) => ({ cribado: "Prueba de cribado", seguimiento: "Co-test de seguimiento", salida: "Prueba de salida o captación" }[v]),
     cit_cribado: (v, t) => "Citología: " + t,
     previo_nv_cit: SI("Citología previa no valorable", "Citología previa valorable"),
     vph_triaje: (v, t) => "VPH de triaje: " + t,
