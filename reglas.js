@@ -12,7 +12,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.1.0";
+  const VERSION = "2.2.0";
   const FECHA_VERSION = "2026-10-25";
   const BASE = "PDPCCU de Andalucía (junio de 2024) y anexo «VPH + con genotipado indeterminado» v1.3; AEPCC 2022 y AEPCC 2025 donde el PDPCCU no llega";
 
@@ -31,6 +31,7 @@
     A22_COP: "AEPCC 2022, definición de co-test positivo (p. 59, 64 y 68)",
     A22_53: "AEPCC 2022, apartado 5.4 (p. 53–54): infección VPH persistente sin lesión cervical",
     A22_CIN1: "AEPCC 2022, algoritmo «Biopsia LSIL/CIN1»",
+    A22_ALTO: "AEPCC 2022, algoritmos «Citología HSIL», «Citología ASC-H» y «Citología ACG»: tras colposcopia negativa, co-test anual dos veces y colposcopia si es positivo",
     ASCCP: "ASCCP 2019 (Perkins et al., 2020) y Egemen et al. (2020): vigilancia al año tras colposcopia con CIN1 o menos",
     A22_238: "AEPCC 2022, apartado 2.3.8",
     A22_634: "AEPCC 2022, apartado 6.3.4 (gestantes)",
@@ -91,7 +92,8 @@
     "SEG-ALTO": { d: "Co-test con citología ASC-H, HSIL, AGC o carcinoma: colposcopia", f: [F.P13, F.A22_CIN1], aepcc: false },
     "SEG-1618": { d: "Co-test con VPH 16/18, con cualquier citología: colposcopia", f: [F.P13, F.A22_53, F.A22_CIN1], aepcc: false },
     "SEG-BAJO-SINCOLPO": { d: "Co-test con citología ASC-US o LSIL, o VPH no 16/18, sin colposcopia previa en este seguimiento: colposcopia", f: [F.P13, F.A22_COP], aepcc: false },
-    "SEG-BAJO-CONTROL": { d: "Citología negativa, ASC-US o LSIL con VPH negativo o no 16/18, y colposcopia que descartó HSIL/CIN2+ hace menos de 2 años: co-test en 1 año", f: [F.A22_53, F.A22_CIN1, F.ASCCP], aepcc: true },
+    "SEG-BAJO-ALTOPREVIO": { d: "Citología ASC-US o LSIL, o VPH no 16/18, tras colposcopia por citología HSIL, ASC-H o AGC sin CIN2+: colposcopia", f: [F.P13, F.A22_ALTO], aepcc: false },
+    "SEG-BAJO-CONTROL": { d: "Citología negativa, ASC-US o LSIL con VPH negativo o no 16/18, y colposcopia hace menos de 2 años, indicada por una citología distinta de HSIL, ASC-H o AGC, que descartó HSIL/CIN2+: co-test en 1 año", f: [F.A22_53, F.A22_CIN1, F.ASCCP], aepcc: true },
     "SEG-BAJO-COLPO": { d: "Citología negativa, ASC-US o LSIL con VPH negativo o no 16/18, y última colposcopia hace 2 años o más: colposcopia", f: [F.A22_53, F.A22_CIN1], aepcc: true },
     "SEG-INDET": { d: "Co-test con genotipado indeterminado (citología negativa o no valorable, o ASC-US/LSIL en mujer no menopáusica o menor de 35 años): repetir la toma", f: [F.PANX], aepcc: false },
     "SEG-INDET-BAJO-MENO": { d: "Co-test con genotipado indeterminado y ASC-US o LSIL en mujer menopáusica o mayor de 65 años: colposcopia", f: [F.PANX, F.DEC], aepcc: false },
@@ -169,6 +171,10 @@
     ultima_colpo: {
       etiqueta: "¿Cuándo fue la última colposcopia que descartó HSIL/CIN2+?",
       opciones: [["menos2", "Hace menos de 2 años"], ["2omas", "Hace 2 años o más"], ["ninguna", "No se ha hecho colposcopia"]]
+    },
+    origen_colpo: {
+      etiqueta: "¿Qué citología motivó esa colposcopia?",
+      opciones: [["alto", "HSIL, ASC-H o AGC"], ["otro", "Otra (negativa, ASC-US o LSIL)"]]
     },
     previo_nv_cot: { etiqueta: "¿El co-test previo inmediato fue también no valorable?", opciones: SI_NO },
     prueba_salida: { etiqueta: "Prueba realizada", opciones: [["vph", "Prueba de VPH"], ["cotest", "Co-test"]] },
@@ -270,7 +276,10 @@
           if (d.previo_indet === "no" && ["ascus", "lsil"].includes(cit) && d.edad >= 35 && d.edad <= 65) v.push("menopausia");
         } else if (bajoGradoCotest(cit, vph)) {
           v.push("ultima_colpo");
-          if (nv && d.ultima_colpo === "menos2") v.push("previo_nv_cot");
+          if (d.ultima_colpo === "menos2") {
+            v.push("origen_colpo");
+            if (nv && d.origen_colpo === "otro") v.push("previo_nv_cot");
+          }
         } else if (nv) {
           v.push("previo_nv_cot");
         }
@@ -598,6 +607,11 @@
         return resultado("SEG-BAJO-COLPO", COLPO, "colposcopia", ruta, { info: "colposcopia" });
       }
       ruta.push("Colposcopia que descartó HSIL/CIN2+ hace menos de 2 años");
+      if (d.origen_colpo === "alto") {
+        ruta.push("Colposcopia indicada por citología HSIL, ASC-H o AGC: cualquier co-test positivo lleva a colposcopia");
+        return resultado("SEG-BAJO-ALTOPREVIO", COLPO, "colposcopia", ruta, { info: "colposcopia" });
+      }
+      ruta.push("Colposcopia indicada por citología negativa, ASC-US o LSIL");
       if (!nv) {
         const detalle = ["Mientras persista, co-test anual y colposcopia cada 2 años (cada año si aparece VPH 16/18).", fueraSiMayor65(12, d)].filter(Boolean).join(" ");
         return resultado("SEG-BAJO-CONTROL", "Co-test en 1 año", "control", ruta, { detalle: detalle, info: "controlTrasColposcopia" });

@@ -41,6 +41,7 @@
     cot_cit: (v, t) => "Citología: " + t,
     cot_vph: (v, t) => "VPH: " + t,
     ultima_colpo: (v) => ({ menos2: "Colposcopia hace menos de 2 años", "2omas": "Colposcopia hace 2 años o más", ninguna: "Sin colposcopia previa" }[v]),
+    origen_colpo: (v) => (v === "alto" ? "Colposcopia por HSIL, ASC-H o AGC" : "Colposcopia por otra citología"),
     previo_nv_cot: SI("Co-test previo no valorable", "Co-test previo valorable"),
     prueba_salida: (v, t) => t,
     vph_salida: (v, t) => "VPH: " + t
