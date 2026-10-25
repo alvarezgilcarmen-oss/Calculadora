@@ -186,6 +186,18 @@
     ${SINTOMAS}
   </div>`;
 
+  // NUEVO (pendiente de revisión)
+  T.controlTrasColposcopia = `
+  <div class="info-paciente">
+    <h3>Información para la paciente</h3>
+    <p>En su control se sigue detectando una infección por VPH de alto riesgo diferente de los tipos 16 y 18, o persisten cambios leves en las células del cuello del útero —cérvix—.</p>
+    <p>La colposcopia que se le realizó recientemente descartó una lesión importante. Tras una colposcopia normal, el riesgo de que aparezca una lesión importante en el año siguiente es bajo.</p>
+    <p>Por este motivo, no es necesario repetir ahora la colposcopia. Lo recomendado es realizar un nuevo co-test, que incluye la prueba de VPH y la citología, dentro de 1 año.</p>
+    <p>Mientras la infección persista, se mantendrá un control anual con co-test y una colposcopia cada 2 años.</p>
+    <p>Es muy importante acudir a esta revisión en la fecha indicada.</p>
+    ${SINTOMAS}
+  </div>`;
+
   root.TextosPaciente = T;
   if (typeof module !== "undefined" && module.exports) module.exports = T;
 })(typeof window !== "undefined" ? window : globalThis);
