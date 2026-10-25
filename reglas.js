@@ -12,7 +12,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.4.0";
+  const VERSION = "2.4.1";
   const FECHA_VERSION = "2026-10-25";
   const BASE = "PDPCCU de Andalucía (junio de 2024) y anexo «VPH + con genotipado indeterminado» v1.3; AEPCC 2022 y AEPCC 2025 donde el PDPCCU no llega";
 
@@ -98,10 +98,10 @@
     "SEG-INDET": { d: "Co-test con genotipado indeterminado (citología negativa o no valorable, o ASC-US/LSIL en mujer no menopáusica o menor de 35 años): repetir la toma", f: [F.PANX], aepcc: false },
     "SEG-INDET-BAJO-MENO": { d: "Co-test con genotipado indeterminado y ASC-US o LSIL en mujer menopáusica o mayor de 65 años: colposcopia", f: [F.PANX, F.DEC], aepcc: false },
     "SEG-INDET-2": { d: "Segundo VPH positivo consecutivo con genotipado indeterminado: valoración ginecológica", f: [F.PANX], aepcc: false },
-    "SEG-NV-PREVIO": { d: "Co-test con una prueba no valorable y el co-test anterior también no valorable: colposcopia", f: [F.P12, F.DEC], aepcc: false },
+    "SEG-NV-PREVIO": { d: "Co-test con una prueba no valorable y la prueba anterior también no valorable: colposcopia", f: [F.P12, F.DEC], aepcc: false },
     "SEG-NV-REPETIR": { d: "Co-test con una prueba no valorable, sin otro resultado que indique colposcopia: repetir el co-test en 2–4 meses", f: [F.A22_55, F.DEC], aepcc: true },
-    "SEG-ANUAL1-NEG": { d: "Co-test anual negativo sin co-test anterior negativo (primer control, o anterior con hallazgo, no valorable o indeterminado): co-test en 1 año", f: [F.P13, F.A22_CIN1], aepcc: false },
-    "SEG-RESUELTO": { d: "Seguimiento resuelto (co-test anual negativo con el anterior también negativo, o co-test a 3 años negativo): vuelta al cribado según edad", f: [F.P13, F.P3], aepcc: false },
+    "SEG-ANUAL1-NEG": { d: "Co-test anual negativo con la prueba anterior no negativa (con hallazgo, no valorable o con genotipado indeterminado): co-test en 1 año", f: [F.P13, F.A22_CIN1], aepcc: false },
+    "SEG-RESUELTO": { d: "Seguimiento resuelto (co-test anual negativo con la prueba anterior también negativa, o co-test a 3 años negativo): vuelta al cribado según edad", f: [F.P13, F.P3], aepcc: false },
     "SEG-RESUELTO-SALIDA": { d: "Seguimiento resuelto entre 61 y 64 años: la siguiente prueba (66–69 años) es la de salida", f: [F.P13, F.A25_24], aepcc: true },
     "SEG-RESUELTO-65": { d: "Seguimiento resuelto a los 65 años (equivale a cribado inadecuado): VPH a los 70 años", f: [F.A25_19, F.DEC], aepcc: true },
     "SEG-RESUELTO-66": { d: "Seguimiento resuelto entre 66 y 75 años: fin del cribado", f: [F.A25_19, F.DEC], aepcc: true },
@@ -162,10 +162,9 @@
       ]
     },
     cotest_previo: {
-      etiqueta: "Resultado del co-test anterior",
+      etiqueta: "Resultado de la prueba anterior (cribado o co-test)",
       opciones: [
-        ["ninguno", "No hay: es el primer co-test de control"],
-        ["negativo", "Negativo"],
+        ["negativo", "Negativa"],
         ["hallazgo", "Con hallazgo"],
         ["no_valorable", "No valorable"],
         ["indet", "VPH con genotipado indeterminado"]
@@ -567,7 +566,7 @@
   function seguimiento(d, ruta) {
     const anual = d.tipo_cotest === "anual";
     ruta.push(anual ? "Co-test anual de control" : "Co-test a los 3 años");
-    if (anual) ruta.push("Co-test anterior: " + etiquetaValor("cotest_previo", d.cotest_previo, d));
+    if (anual) ruta.push("Prueba anterior: " + etiquetaValor("cotest_previo", d.cotest_previo, d));
     const indetPrevio = anual ? d.cotest_previo === "indet" : d.previo_indet === "si";
     const nvPrevio = anual ? d.cotest_previo === "no_valorable" : d.previo_nv_cot === "si";
     const cit = d.cot_cit, vph = d.cot_vph;
@@ -619,14 +618,14 @@
     if (nv) {
       ruta.push("Co-test con una prueba no valorable");
       if (nvPrevio) {
-        ruta.push("Co-test anterior también no valorable");
+        ruta.push("Prueba anterior también no valorable");
         return resultado("SEG-NV-PREVIO", COLPO, "colposcopia", ruta, { info: "colposcopia" });
       }
       return resultado("SEG-NV-REPETIR", "Repetir el co-test en 2–4 meses", "control", ruta, { detalle: fueraSiMayor65(3, d), info: "repetirNoValorable" });
     }
     ruta.push("Co-test negativo");
     if (anual && d.cotest_previo !== "negativo") {
-      ruta.push("El co-test anterior no fue negativo: hacen falta dos co-test anuales negativos seguidos");
+      ruta.push("La prueba anterior no fue negativa: hacen falta dos co-test anuales negativos seguidos");
       return resultado("SEG-ANUAL1-NEG", "Co-test en 1 año", "control", ruta,
         { detalle: ["Para volver al cribado hacen falta dos co-test anuales negativos seguidos.", fueraSiMayor65(12, d)].filter(Boolean).join(" "), info: "primerCotestNegativo" });
     }
