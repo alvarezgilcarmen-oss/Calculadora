@@ -12,7 +12,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.2.0";
+  const VERSION = "2.2.1";
   const FECHA_VERSION = "2026-10-25";
   const BASE = "PDPCCU de Andalucía (junio de 2024) y anexo «VPH + con genotipado indeterminado» v1.3; AEPCC 2022 y AEPCC 2025 donde el PDPCCU no llega";
 
@@ -161,7 +161,7 @@
     tipo_cotest: {
       etiqueta: "¿Qué co-test es?",
       opciones: [
-        ["anual_1", "Primer co-test anual de control, o el primero tras un co-test con hallazgo"],
+        ["anual_1", "Primer co-test anual de control"],
         ["anual_2", "Segundo co-test anual (el anterior fue negativo)"],
         ["trienal", "Co-test a los 3 años (tras ASC-US con VPH negativo)"]
       ]
