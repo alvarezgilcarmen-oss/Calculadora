@@ -12,7 +12,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "2.4.1";
+  const VERSION = "2.5.0";
   const FECHA_VERSION = "2026-10-25";
   const BASE = "PDPCCU de Andalucía (junio de 2024) y anexo «VPH + con genotipado indeterminado» v1.3; AEPCC 2022 y AEPCC 2025 donde el PDPCCU no llega";
 
@@ -161,15 +161,12 @@
         ["trienal", "Co-test a los 3 años (tras ASC-US con VPH negativo)"]
       ]
     },
-    cotest_previo: {
-      etiqueta: "Resultado de la prueba anterior (cribado o co-test)",
-      opciones: [
-        ["negativo", "Negativa"],
-        ["hallazgo", "Con hallazgo"],
-        ["no_valorable", "No valorable"],
-        ["indet", "VPH con genotipado indeterminado"]
-      ]
+    ant_cit: {
+      etiqueta: "Citología de la prueba anterior",
+      ayuda: "La prueba de cribado o el co-test inmediatamente anterior a este co-test.",
+      opciones: CIT.concat([["no_realizada", "No realizada"]])
     },
+    ant_vph: { etiqueta: "VPH de la prueba anterior", opciones: VPH },
     cot_cit: { etiqueta: "Citología del co-test actual", opciones: CIT },
     cot_vph: { etiqueta: "VPH del co-test actual", opciones: VPH },
     ultima_colpo: {
@@ -178,6 +175,7 @@
     },
     origen_colpo: {
       etiqueta: "¿Qué citología motivó esa colposcopia?",
+      ayuda: "Se pregunta porque la prueba anterior no fue valorable y no permite saberlo.",
       opciones: [["alto", "HSIL, ASC-H o AGC"], ["otro", "Otra (negativa, ASC-US o LSIL)"]]
     },
     previo_nv_cot: { etiqueta: "¿El co-test previo inmediato fue también no valorable?", opciones: SI_NO },
@@ -207,6 +205,24 @@
   function bajoGradoCotest(cit, vph) {
     if (cit === "alto" || vph === "1618" || vph === "indet") return false;
     return ["ascus", "lsil"].includes(cit) || vph === "no1618";
+  }
+
+  // Clase de la prueba anterior en el co-test anual de seguimiento:
+  // negativa, no valorable, VPH con genotipado indeterminado o con hallazgo.
+  function clasePrevia(d) {
+    if (d.ant_vph === "indet") return "indet";
+    if (d.ant_cit === "no_valorable" || d.ant_vph === "no_valorable") return "no_valorable";
+    if (d.ant_vph === "negativo" && (d.ant_cit === "negativa" || d.ant_cit === "no_realizada")) return "negativa";
+    return "hallazgo";
+  }
+
+  // Citología que motivó la última colposcopia (si fue hace menos de 2 años).
+  // En el co-test anual es la de la prueba anterior, salvo que esta no fuera
+  // valorable: entonces se pregunta. El co-test a los 3 años viene de ASC-US.
+  function origenColpo(d) {
+    if (d.tipo_cotest !== "anual") return "otro";
+    if (clasePrevia(d) === "no_valorable") return d.origen_colpo;
+    return d.ant_cit === "alto" ? "alto" : "otro";
   }
 
   function opciones(campo, d) {
@@ -273,20 +289,20 @@
       // Co-test anual: el resultado del anterior sustituye a las preguntas
       // sobre el previo inmediato. Co-test a los 3 años: no hay anterior.
       const anual = d.tipo_cotest === "anual";
-      if (anual) v.push("cotest_previo");
+      if (anual) v.push("ant_cit", "ant_vph");
       v.push("cot_cit", "cot_vph");
       const cit = d.cot_cit, vph = d.cot_vph;
       if (valorValido("cot_cit", cit, d) && valorValido("cot_vph", vph, d) && cit !== "alto" && vph !== "1618") {
         const nv = cit === "no_valorable" || vph === "no_valorable";
         if (vph === "indet") {
           if (!anual) v.push("previo_indet");
-          const primerIndet = anual ? (d.cotest_previo !== undefined && d.cotest_previo !== "indet") : d.previo_indet === "no";
+          const primerIndet = anual ? (valorValido("ant_cit", d.ant_cit, d) && valorValido("ant_vph", d.ant_vph, d) && d.ant_vph !== "indet") : d.previo_indet === "no";
           if (primerIndet && ["ascus", "lsil"].includes(cit) && d.edad >= 35 && d.edad <= 65) v.push("menopausia");
         } else if (bajoGradoCotest(cit, vph)) {
           v.push("ultima_colpo");
           if (d.ultima_colpo === "menos2") {
-            v.push("origen_colpo");
-            if (nv && d.origen_colpo === "otro" && !anual) v.push("previo_nv_cot");
+            if (anual && valorValido("ant_cit", d.ant_cit, d) && valorValido("ant_vph", d.ant_vph, d) && clasePrevia(d) === "no_valorable") v.push("origen_colpo");
+            if (nv && !anual) v.push("previo_nv_cot");
           }
         } else if (nv && !anual) {
           v.push("previo_nv_cot");
@@ -566,9 +582,13 @@
   function seguimiento(d, ruta) {
     const anual = d.tipo_cotest === "anual";
     ruta.push(anual ? "Co-test anual de control" : "Co-test a los 3 años");
-    if (anual) ruta.push("Prueba anterior: " + etiquetaValor("cotest_previo", d.cotest_previo, d));
-    const indetPrevio = anual ? d.cotest_previo === "indet" : d.previo_indet === "si";
-    const nvPrevio = anual ? d.cotest_previo === "no_valorable" : d.previo_nv_cot === "si";
+    const previa = anual ? clasePrevia(d) : null;
+    if (anual) {
+      const nombresPrevia = { negativa: "negativa", no_valorable: "no valorable", indet: "VPH con genotipado indeterminado", hallazgo: "con hallazgo" };
+      ruta.push("Prueba anterior: citología " + etiquetaValor("ant_cit", d.ant_cit, d) + " · VPH " + etiquetaValor("ant_vph", d.ant_vph, d) + " (" + nombresPrevia[previa] + ")");
+    }
+    const indetPrevio = anual ? previa === "indet" : d.previo_indet === "si";
+    const nvPrevio = anual ? previa === "no_valorable" : d.previo_nv_cot === "si";
     const cit = d.cot_cit, vph = d.cot_vph;
     ruta.push("Citología: " + etiquetaValor("cot_cit", cit, d) + " · VPH: " + etiquetaValor("cot_vph", vph, d));
 
@@ -605,7 +625,7 @@
         return resultado("SEG-BAJO-COLPO", COLPO, "colposcopia", ruta, { info: "colposcopia" });
       }
       ruta.push("Colposcopia que descartó HSIL/CIN2+ hace menos de 2 años");
-      if (d.origen_colpo === "alto") {
+      if (origenColpo(d) === "alto") {
         ruta.push("Colposcopia indicada por citología HSIL, ASC-H o AGC: cualquier co-test positivo lleva a colposcopia");
         return resultado("SEG-BAJO-ALTOPREVIO", COLPO, "colposcopia", ruta, { info: "colposcopia" });
       }
@@ -624,7 +644,7 @@
       return resultado("SEG-NV-REPETIR", "Repetir el co-test en 2–4 meses", "control", ruta, { detalle: fueraSiMayor65(3, d), info: "repetirNoValorable" });
     }
     ruta.push("Co-test negativo");
-    if (anual && d.cotest_previo !== "negativo") {
+    if (anual && previa !== "negativa") {
       ruta.push("La prueba anterior no fue negativa: hacen falta dos co-test anuales negativos seguidos");
       return resultado("SEG-ANUAL1-NEG", "Co-test en 1 año", "control", ruta,
         { detalle: ["Para volver al cribado hacen falta dos co-test anuales negativos seguidos.", fueraSiMayor65(12, d)].filter(Boolean).join(" "), info: "primerCotestNegativo" });
@@ -662,7 +682,7 @@
 
   const API = {
     VERSION, FECHA_VERSION, BASE, FUENTES: F, REGLAS, CAMPOS,
-    opciones, camposVisibles, depurar, evaluar, resumen, hallazgoCotest
+    opciones, camposVisibles, depurar, evaluar, resumen, hallazgoCotest, clasePrevia, origenColpo
   };
   root.ReglasPDPCCU = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
