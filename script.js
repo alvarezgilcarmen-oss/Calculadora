@@ -38,6 +38,7 @@
     cit_repetida: SI("Citología ya repetida", "Primera citología refleja"),
     cribado_adecuado: SI("Cribado previo adecuado", "Cribado previo inadecuado o desconocido"),
     tipo_cotest: (v, t) => t,
+    cotest_previo: (v) => ({ ninguno: "Primer co-test de control", negativo: "Co-test anterior negativo", hallazgo: "Co-test anterior con hallazgo", no_valorable: "Co-test anterior no valorable", indet: "Co-test anterior con genotipado indeterminado" }[v]),
     cot_cit: (v, t) => "Citología: " + t,
     cot_vph: (v, t) => "VPH: " + t,
     ultima_colpo: (v) => ({ menos2: "Colposcopia hace menos de 2 años", "2omas": "Colposcopia hace 2 años o más", ninguna: "Sin colposcopia previa" }[v]),
